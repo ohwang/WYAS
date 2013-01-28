@@ -1,0 +1,213 @@
+% Notes on Haskell
+% ohw
+% Date
+
+Introduction
+==============
+
+**Haskell** is non-strict purely functional programming language, which means that it is:
+
+1. Lazy
+2. Immutable
+
+Haskell has a good type system and do type inference whenever it can. It would take you some time to figure out when type inference works and when it does not.
+
+language Elements
+==============
+
+### Operators (Functions Indeed)
+
++ \+ \- \* /
++ ``==`` /=
+
+### Functions
+
++ if then else expression (or function)
+
++ succ, truncate, round
++ sqrt
++ not
++ gcd
++ min, max
++ div (integer division)
+
++ putStrLn
+
+>(Every Binary Function can act as an infix operator)
+
+Function definitions are:
+
+```{.haskell}
+FunctionName ListOfParameters .. = Expression-for-function-value
+```
+
+If function doesn't take any parameters we call it a definition in that the value is fixed
+
+```{.haskell}
+NameOfValue = "Learn you a haskell"
+```
+
+### Lists
+
+Lists in Haskell are homogenous data structures.
+
+Strings are lists of Chars
+
+Lists can be compared if its elements can be compared
+
++ `` ++ ``
++ : (cons operator)
++ !! (get element by index)
+
++ head, tail, last, init
++ length
++ null
++ reverse
++ take
++ drop
+
+### Evaluation Order of Functions
+
+### In CHCi
+
++ use ``t:`` to get type signature
++ :l exmaple.hs to load a .hs file
+
+
+Misc
+==============
+
+### Difference between codes in GHC and GHCi
+
+Name them _differences_ may not ba a good idea.
+
+In GHCi we use `` let something .. = something-else.. ``
+
+While in GHC, we just write `` a = b `` without `` let ``
+
+
+### Programming Patterns and Conventions
+
+Define basic functions that are absolutely correct and then define more complex functions based on them. (Try to make functions simple, which will not sacrifice the efficiency)
+
+Apostrophe `` ' `` can be used in function names, to define a slightly different version of some function.
+
+Types
+==============
+
+### type signature
+
+Use `data` keyword to define a type
+
+a type 
+
+:    just a set of value constructors
+
+> what is the difference between value constructors and functions?   
+> if no difference, then a type is just a collection of functions
+
+value constructors: 
+
+:    list of parameters which are again types 
+
+:    functions which ultimately return a value of a data type (the type we are defining) -- (functions thus can be partially applied)
+
+A data instance (or an object)
+
+:    a function without arguments __?__
+
+:    equivalent to its constructors with arguments, as long as the constructor is immutable.
+
+type constructors:
+
+:   take types as parameters to produce new types
+
+
+```{.haskell}
+data Shape = Circle Float Float Float | Rectangle Float Float Float Float
+-- what is the name of Circle or Rectangle?
+-- they are not types, so what are they?
+
+surface :: Shape -> Float
+surface (Circle _ _ t) = pi * r ^ 2 -- am I doing pattern matching here?
+```
+
+> a notable observation is how the type can be defined to contain different value constructors. 
+> we can even only export a subset of the value constructors *that is, we can hide some constructors, yet still have full power of using it*
+
+##### Record syntax (syntax suger)
+```{.haskell}
+-- this is like named parameters in `Python`
+-- and they are made into `getters`
+data Person = Person { firstName :: String
+                     , lastName :: String
+                     , age :: Int
+                     , height :: Float
+                     } deriving (Show)
+```
+
+### Pattern Matching 
+
+##### classifications of previous examples
+
+##### what is omitted? what can be omitted? different forms.
+
+1. when the function's type is explicitly defined
+
+2. when the type can be inference **in other ways** __?__
+
+3. when the type doesn't matter, i.e. generics
+
+
+In Real World
+==============
+
+### Hackage ecosystem
+
+HackageDB: official repos of Haskell softwares, but it is not closed under dependency
+
+Haddock: for documentation
+
+HPC: Haskell Program Coverage
+
+### Package management
+
+Cabal -> Common Architecture for Building Applications and Libraries.
+
+Cabal-install is a command line tool which uses the Cabal library. 
+
+Cabal-install doesn't track the installed package files, and it leaves the job
+to ghc-pkg, which also doesn't track these information. (can only unregister if
+needed, but files are not deleted) In other words, cabal-install (as of the date
+of writing) cannot uninstall/update a package. This is just disaster.
+
+We should try to use the system package manager (e.g. pacman in arch) to manage
+the everything. Other reasons are:
+
+* It helps resolves dependencies even if they are not haskell libraries
+* Often no need to compile
+* Keep updated as you do system wide package update
+
+GHC
+====================
+
+Config file for ghci -> ~/.ghci
+
+You can customize the prompt of ghci, e.g.
+
+```
+:set prompt "-> "
+```
+
+Questions
+===================
+
+Efficiency issues
+
+Reference
+====================
++ [Write yourself a scheme in 48 hours](http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours)
++ [Learn you a Haskell for great good](http://learnyouahaskell.com/chapters)
++ [Real world Haskell](http://book.realworldhaskell.org/read/)
++ <http://ivanmiljenovic.wordpress.com/>
+
