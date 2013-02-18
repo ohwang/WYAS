@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="ohw" />
+  <title>Notes on Haskell</title>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="/home/i/ohwnotes/share/pandoc.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Notes on Haskell</h1>
+<h2 class="author">ohw</h2>
+<h3 class="date">Date</h3>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#language-elements">language Elements</a><ul>
+<li><a href="#operators-functions-indeed">Operators (Functions Indeed)</a></li>
+<li><a href="#function-basics">Function Basics</a></li>
+<li><a href="#lists">Lists</a><ul>
+<li><a href="#lists-comprehension">Lists comprehension</a></li>
+<li><a href="#ranges">Ranges</a></li>
+</ul></li>
+<li><a href="#pattern-matching">Pattern Matching</a><ul>
+<li><a href="#occasions-of-pattern-matching">Occasions of Pattern Matching</a></li>
+<li><a href="#wnat-and-when-can-be-omitted">Wnat and when can be omitted</a></li>
+</ul></li>
+<li><a href="#guards">Guards</a></li>
+<li><a href="#where">Where</a></li>
+<li><a href="#let-..-in">Let .. in</a><ul>
+<li><a href="#what-is-let-in-ghci">What is <code>let</code> in GHCi</a></li>
+<li><a href="#other-variable-bindings">Other variable bindings</a></li>
+</ul></li>
+<li><a href="#case">Case</a></li>
+</ul></li>
+<li><a href="#function-more">Function More</a><ul>
+<li><a href="#currying">Currying</a><ul>
+<li><a href="#why-useful">Why useful ?</a></li>
+<li><a href="#currying-infix-functions">Currying Infix functions</a></li>
+</ul></li>
+<li><a href="#lambdas">Lambdas</a></li>
+<li><a href="#function-composition">Function Composition</a><ul>
+<li><a href="#point-free-style">Point Free Style</a></li>
+</ul></li>
+<li><a href="#evaluation-order">Evaluation Order</a><ul>
+<li><a href="#the">The $</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#modules">Modules</a><ul>
+<li><a href="#import">Import</a></li>
+<li><a href="#prelude">Prelude</a></li>
+<li><a href="#data.list">Data.List</a></li>
+<li><a href="#data.control">Data.Control</a></li>
+<li><a href="#data.map">Data.Map</a></li>
+<li><a href="#data.set">Data.Set</a></li>
+</ul></li>
+<li><a href="#misc">Misc</a><ul>
+<li><a href="#in-chci-1">In CHCi</a></li>
+<li><a href="#difference-between-codes-in-ghc-and-ghci">Difference between codes in GHC and GHCi</a></li>
+<li><a href="#programming-patterns-and-conventions">Programming Patterns and Conventions</a></li>
+<li><a href="#misc-in-misc">Misc in Misc</a></li>
+</ul></li>
+<li><a href="#types">Types</a><ul>
+<li><a href="#type-basics">Type Basics</a><ul>
+<li><a href="#record-syntax-syntax-suger">Record syntax (syntax suger)</a></li>
+</ul></li>
+<li><a href="#typeclasses">Typeclasses</a><ul>
+<li><a href="#common-typeclasses">Common typeclasses</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#io">IO</a></li>
+<li><a href="#useful-functions">Useful functions</a></li>
+<li><a href="#monad">Monad</a><ul>
+<li><a href="#do-notation">Do notation</a></li>
+</ul></li>
+<li><a href="#zipper">Zipper</a></li>
+<li><a href="#real-world">Real World</a><ul>
+<li><a href="#hackage-ecosystem">Hackage ecosystem</a></li>
+<li><a href="#package-management">Package management</a><ul>
+<li><a href="#ghc-config">GHC Config</a></li>
+<li><a href="#run-.hs-as-script">Run .hs as script</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#questions">Questions</a></li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+</div>
+<h1 id="introduction"><a href="#introduction">Introduction</a></h1>
+<p><strong>Haskell</strong> is non-strict purely functional programming language, which means that it is:</p>
+<ol style="list-style-type: decimal">
+<li>Lazy</li>
+<li>Immutable</li>
+</ol>
+<p>Haskell has a good type system and do type inference whenever it can. It would take you some time to figure out when type inference works and when it does not.</p>
+<h1 id="language-elements"><a href="#language-elements">language Elements</a></h1>
+<h2 id="operators-functions-indeed"><a href="#operators-functions-indeed">Operators (Functions Indeed)</a></h2>
+<ul>
+<li>+ - * /</li>
+<li><code>==</code> /=</li>
+</ul>
+<h2 id="function-basics"><a href="#function-basics">Function Basics</a></h2>
+<ul>
+<li><p>if then else expression (or function)</p></li>
+<li>succ, pred (requires Enum typeclass)</li>
+<li>truncate, round</li>
+<li>sqrt</li>
+<li>not</li>
+<li>gcd</li>
+<li>min, max</li>
+<li><p>div (integer division)</p></li>
+<li><p>fst, snd</p></li>
+</ul>
+<p>IO functions</p>
+<ul>
+<li>putStrLn</li>
+<li>getLine</li>
+</ul>
+<p>(only use in the IO() Monad)</p>
+<p>(Every Binary Function can act as an infix operator)</p>
+<p>Function definitions are:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">FunctionName</span> <span class="dt">ListOfParameters</span> <span class="fu">..</span> <span class="fu">=</span> <span class="dt">Expression</span><span class="fu">-</span>for<span class="fu">-</span>function<span class="fu">-</span>value</code></pre>
+<p>If function doesn’t take any parameters we call it a definition, or constant.</p>
+<p>We can have polymorphic constants.</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">NameOfValue</span> <span class="fu">=</span> <span class="st">&quot;Learn you a haskell&quot;</span></code></pre>
+<h2 id="lists"><a href="#lists">Lists</a></h2>
+<p>Lists in Haskell are homogenous data structures.</p>
+<p>Strings are lists of Chars</p>
+<p>Lists can be compared if its elements can be compared</p>
+<ul>
+<li><code>++</code></li>
+<li>: (cons operator)</li>
+<li><p>!! (get element by index)</p></li>
+<li>head, tail, last, init</li>
+<li>length</li>
+<li>null</li>
+<li>reverse</li>
+<li>take</li>
+<li><p>drop</p></li>
+<li><p>zip (2 lists can be of different length, longer one gets truncated)</p></li>
+<li><p>cycle, repeat</p></li>
+</ul>
+<h3 id="lists-comprehension"><a href="#lists-comprehension">Lists comprehension</a></h3>
+<p>Pretty much like a mathematical expression</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">removeNonUppercase::</span>[<span class="dt">Char</span>]<span class="ot">-&gt;</span>[<span class="dt">Char</span>]
+removeNonUppercase st <span class="fu">=</span> [c <span class="fu">|</span> c<span class="ot">&lt;-</span>st , c ‘elem‘ [’<span class="dt">A</span>’<span class="fu">..</span>’<span class="dt">Z</span>’]]</code></pre>
+<p>Almost identical to that in python, except that:</p>
+<ul>
+<li>several predicates need only be separated by comma</li>
+<li>Can draw from several lists</li>
+</ul>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">ghci<span class="fu">&gt;</span> [ x<span class="fu">*</span>y <span class="fu">|</span> x <span class="ot">&lt;-</span> [<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">10</span>], y <span class="ot">&lt;-</span> [<span class="dv">8</span>,<span class="dv">10</span>,<span class="dv">11</span>]]  
+[<span class="dv">16</span>,<span class="dv">20</span>,<span class="dv">22</span>,<span class="dv">40</span>,<span class="dv">50</span>,<span class="dv">55</span>,<span class="dv">80</span>,<span class="dv">100</span>,<span class="dv">110</span>]  </code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">ghci<span class="fu">&gt;</span> <span class="kw">let</span> rightTriangles <span class="fu">=</span> [ (a,b,c) <span class="fu">|</span> c <span class="ot">&lt;-</span> [<span class="dv">1</span><span class="fu">..</span><span class="dv">10</span>], b <span class="ot">&lt;-</span> [<span class="dv">1</span><span class="fu">..</span>c], a <span class="ot">&lt;-</span> [<span class="dv">1</span><span class="fu">..</span>b], a<span class="fu">^</span><span class="dv">2</span> <span class="fu">+</span> b<span class="fu">^</span><span class="dv">2</span> <span class="fu">==</span> c<span class="fu">^</span><span class="dv">2</span>]   </code></pre>
+<h3 id="ranges"><a href="#ranges">Ranges</a></h3>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">ghci<span class="fu">&gt;</span> [<span class="dv">2</span>,<span class="dv">4</span><span class="fu">..</span><span class="dv">20</span>]  
+[<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">10</span>,<span class="dv">12</span>,<span class="dv">14</span>,<span class="dv">16</span>,<span class="dv">18</span>,<span class="dv">20</span>]</code></pre>
+<p><code>[20 .. 1]</code> is illegal, but <code>[20,19..1]</code> is okay</p>
+<p>Something very haskell is <code>take 24 [13,26..]</code></p>
+<h2 id="pattern-matching"><a href="#pattern-matching">Pattern Matching</a></h2>
+<p>Order matters, patterns are checked one by one. so should write them from specific ones to general ones. (should always write a catch-all pattern if not sure if our pattern matching is exhaustive.)</p>
+<p>GHC will not check (cannot check ?) if the pattern matching is exhaustive</p>
+<p>— What if the order is complicated to figure out.</p>
+<p>The implementation would be interesting for understanding what pattern matching truly does.</p>
+<p>As Patterns, break up according to the pattern, but still keep a reference to the whole, <code>xs@(x:y:ys)</code></p>
+<h3 id="occasions-of-pattern-matching"><a href="#occasions-of-pattern-matching">Occasions of Pattern Matching</a></h3>
+<ul>
+<li>Match certain value</li>
+<li>Match according to value constructor</li>
+<li>Match and decompose a tuple</li>
+<li>In list comprehension (just like py)</li>
+<li>Match and decompose a list, e.g. x:xs, or [x,y,z], or even x:y:z:zs</li>
+<li><p>in variable binding, use pattern matching like <code>let (a,b) = (1,2)</code></p>
+<p>(Q: Why use <code>Binding</code> rather than <code>assignment</code>?)</p></li>
+<li><p>Blindly match anything</p></li>
+</ul>
+<h3 id="wnat-and-when-can-be-omitted"><a href="#wnat-and-when-can-be-omitted">Wnat and when can be omitted</a></h3>
+<ol style="list-style-type: decimal">
+<li><p>when the function’s type is explicitly defined</p></li>
+<li><p>when the type can be inference <strong>in other ways</strong> <strong>?</strong></p></li>
+<li><p>when the type doesn’t matter, i.e. generics</p></li>
+</ol>
+<h2 id="guards"><a href="#guards">Guards</a></h2>
+<p>syntax sugar for <code>else if</code>, can work together with pattern matching.</p>
+<p><code>otherwise</code> is defined to be always true.</p>
+<p>Once again the compiler cannot check for the exhaustivity, so it’s a good practise the always include otherwise whenever you are not sure of <strong>it</strong>. where <strong>it</strong> means the exhaustivity of guards.</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">max&#39; (<span class="kw">Ord</span> a) <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+<span class="fu">max</span> x y 
+    <span class="fu">|</span> x <span class="fu">&gt;</span> y     <span class="fu">=</span> x
+    <span class="fu">|</span> <span class="fu">otherwise</span> <span class="fu">=</span> y</code></pre>
+<h2 id="where"><a href="#where">Where</a></h2>
+<p>Q: Where can <code>Where</code> be used – definitely not after any expression</p>
+<p>Can even define functions in <code>where</code> section. (Why <em>even</em>?)<br />(How important it is to know implementations)</p>
+<p><code>where</code> can be nested – well facilitate the programming paradigm of building functions.</p>
+<h2 id="let-..-in"><a href="#let-..-in">Let .. in</a></h2>
+<p>Very similar to where, the difference is:</p>
+<blockquote>
+<p>Let .. in is itself an expression, while <code>where</code> bindings are just syntactic constructs</p>
+</blockquote>
+<ul>
+<li>let is local, let .. in itself is an expression, and the bindings are within the let expression</li>
+<li><p>where bindings can span across guards.</p></li>
+<li><p>when write the bindings in where or let in one line, separate bindings using ;</p></li>
+<li><p>let can be used in list comprehension, put the let (and only let … without in) to where predicates are, then the bindings will be visiable to output function and later predicates. (relate to the implementation)</p></li>
+</ul>
+<h3 id="what-is-let-in-ghci"><a href="#what-is-let-in-ghci">What is <code>let</code> in GHCi</a></h3>
+<p>We use it without <code>in</code> part, so that the bindings are visiable throughout the entire interpretation. similar to what we did in list comprehension.</p>
+<h3 id="other-variable-bindings"><a href="#other-variable-bindings">Other variable bindings</a></h3>
+<p>When can we assign some value to a variable?</p>
+<p>Outside of the main in the “global scope” we can just use <code>a = sth..</code>, but inside main, we need to use <code>where</code>, or <code>let</code> bindings.</p>
+<h2 id="case"><a href="#case">Case</a></h2>
+<p>case by case function definitions are functions definition using a case expression are synatax sugars of each other. <code>{.haskell} case expression of pattern -&gt; result                      pattern -&gt; result                      pattern -&gt; result                      ...</code></p>
+<p>case expression is expression so that it can be used anywhere when if-then-else works.</p>
+<h1 id="function-more"><a href="#function-more">Function More</a></h1>
+<p>Why higher order functions are indispensable? How does it make programming powerful?</p>
+<h2 id="currying"><a href="#currying">Currying</a></h2>
+<p>All functions in haskell only takes one parameter. (? how about implementation?)</p>
+<h3 id="why-useful"><a href="#why-useful">Why useful ?</a></h3>
+<p>We don’t need to get all information at the same place for function calls, but can just pack some parameter (infomation) into the function, and pass it around.</p>
+<p>A lot of imperative programming work involves data encapulation and passing around, (callbacks, signal slots, getter and setter, etc.)</p>
+<p>Because of currying, <code>a -&gt; a -&gt; a</code> is no different from <code>a -&gt; (a -&gt; a)</code>, telling us that <code>-&gt;</code> is right associative.</p>
+<p>(?)</p>
+<h3 id="currying-infix-functions"><a href="#currying-infix-functions">Currying Infix functions</a></h3>
+<p>To curry infix funtions (or generally binary functions), just put the parameter at the side that you desire, and surround them with parens.</p>
+<p>(This almost tells us that there are some way to specify parameters to curry on when function has more than 2 parameters.)</p>
+<p>We have flip</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">flip&#39; (x <span class="ot">-&gt;</span> y <span class="ot">-&gt;</span> z) <span class="ot">-&gt;</span> y <span class="ot">-&gt;</span> x <span class="ot">-&gt;</span> z
+flip&#39; f x y <span class="fu">=</span> f y x
+<span class="co">-- this pattern matching is so cool </span>
+<span class="co">-- that it makes me feel unsure whether this is correct.</span></code></pre>
+<h2 id="lambdas"><a href="#lambdas">Lambdas</a></h2>
+<p>Syntax</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">\param1 param2 <span class="fu">..</span> <span class="ot">-&gt;</span> function<span class="fu">-</span>body</code></pre>
+<p>Type annotation of lambdas?</p>
+<h2 id="function-composition"><a href="#function-composition">Function Composition</a></h2>
+<p>function returns only one thing, so subsequent functions should take only one parameter. partial apply the needed arguments, or use functions like <code>uncurry</code></p>
+<h3 id="point-free-style"><a href="#point-free-style">Point Free Style</a></h3>
+<p>eliminate the arguments in function definition, and define functions as combination of some other functions</p>
+<p>try to avoid writing too long function composition, instead, giving intermediate result some labels will make the whole thing clearer.</p>
+<h2 id="evaluation-order"><a href="#evaluation-order">Evaluation Order</a></h2>
+<p>Function application has highest precedence</p>
+<p>note that function application is indeed a binary operation.</p>
+<h3 id="the"><a href="#the">The $</a></h3>
+<p>Consider the space as an operator, then $ is another operator for function application.</p>
+<p>The difference is that space operator is left associative, and $ operator is right associative.</p>
+<h1 id="modules"><a href="#modules">Modules</a></h1>
+<h3 id="import"><a href="#import">Import</a></h3>
+<pre><code>import Data.List (nub, sort)</code></pre>
+<pre><code>import Data.List (nub, sort)</code></pre>
+<h4 id="in-chci"><a href="#in-chci">In CHCi</a></h4>
+<pre><code>:m + Data.List Data.Map</code></pre>
+<h3 id="prelude"><a href="#prelude">Prelude</a></h3>
+<h3 id="data.list"><a href="#data.list">Data.List</a></h3>
+<p>nub : remove duplicates</p>
+<h3 id="data.control"><a href="#data.control">Data.Control</a></h3>
+<h3 id="data.map"><a href="#data.map">Data.Map</a></h3>
+<h3 id="data.set"><a href="#data.set">Data.Set</a></h3>
+<h1 id="misc"><a href="#misc">Misc</a></h1>
+<h2 id="in-chci-1"><a href="#in-chci-1">In CHCi</a></h2>
+<ul>
+<li>use <code>t:</code> to get type signature</li>
+<li><code>:i</code> to get information (doc) about something</li>
+<li><code>:l exmaple.hs</code> to load a .hs file</li>
+</ul>
+<h2 id="difference-between-codes-in-ghc-and-ghci"><a href="#difference-between-codes-in-ghc-and-ghci">Difference between codes in GHC and GHCi</a></h2>
+<p>Name them <em>differences</em> may not ba a good idea.</p>
+<p>In GHCi we use <code>let something .. = something-else..</code></p>
+<p>While in GHC, we just write <code>a = b</code> without <code>let</code></p>
+<h2 id="programming-patterns-and-conventions"><a href="#programming-patterns-and-conventions">Programming Patterns and Conventions</a></h2>
+<p>use of <code>_</code>, <code>x</code>, <code>xs</code>.</p>
+<p>use of <code>a</code>, <code>b</code>, <code>c</code> for type variables</p>
+<p>Uppercase the first letter of type and value constructors</p>
+<p>Define basic functions that are absolutely correct and then define more complex functions based on them. (Try to make functions simple, which will not sacrifice the efficiency)</p>
+<p>Apostrophe <code>'</code> can be used in function names, to define a slightly different version of some function.</p>
+<h2 id="misc-in-misc"><a href="#misc-in-misc">Misc in Misc</a></h2>
+<p><code>length</code> returns <code>Int</code> rather than <code>Num a</code> for historical reasons, may need to use <code>fromIntegral</code> on that.</p>
+<h1 id="types"><a href="#types">Types</a></h1>
+<h2 id="type-basics"><a href="#type-basics">Type Basics</a></h2>
+<p>Use <code>data</code> keyword to define a type</p>
+<dl>
+<dt>a type</dt>
+<dd>just a set of value constructors
+</dd>
+</dl>
+<blockquote>
+<p>essential difference between value constructors and functions?<br />if no, then a type is just a collection of constructors..</p>
+</blockquote>
+<dl>
+<dt>value constructors:</dt>
+<dd><p>list of parameters which are again types</p>
+</dd>
+<dd><p>functions which ultimately return a value of a data type (the type we are defining) – (functions thus can be partially applied)</p>
+</dd>
+<dt>A data instance (or an object)</dt>
+<dd><p>a function without arguments <strong>?</strong></p>
+</dd>
+<dd><p>equivalent to its constructors with arguments, as long as the constructor is immutable.</p>
+</dd>
+<dt>type constructors:</dt>
+<dd><p>take types as parameters to produce new types, e.g <code>Maybe Int</code></p>
+</dd>
+<dt>type signature:</dt>
+<dd>
+</dd>
+<dt>type annotation:</dt>
+<dd><p>To explicitly say the type we want the expression to be.. Type annotations are a way of explicit e.g <code>Read &quot;[1,2,3]&quot; :: [Int]</code>. Can be used in any inline expression (Oh expression is an expression is an inline expression)</p>
+</dd>
+</dl>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Shape</span> <span class="fu">=</span> <span class="dt">Circle</span> <span class="dt">Float</span> <span class="dt">Float</span> <span class="dt">Float</span> <span class="fu">|</span> <span class="dt">Rectangle</span> <span class="dt">Float</span> <span class="dt">Float</span> <span class="dt">Float</span> <span class="dt">Float</span>
+<span class="co">-- what is the name of Circle or Rectangle?</span>
+<span class="co">-- they are not types, so what are they?</span>
+
+<span class="ot">surface ::</span> <span class="dt">Shape</span> <span class="ot">-&gt;</span> <span class="dt">Float</span>
+surface (<span class="dt">Circle</span> _ _ t) <span class="fu">=</span> <span class="fu">pi</span> <span class="fu">*</span> r <span class="fu">^</span> <span class="dv">2</span> <span class="co">-- am I doing pattern matching here?</span></code></pre>
+<blockquote>
+<p>a notable observation is how the type can be defined to contain different value constructors. we can even only export a subset of the value constructors <em>that is, we can hide some constructors, yet still have full power of using it</em></p>
+</blockquote>
+<h3 id="record-syntax-syntax-suger"><a href="#record-syntax-syntax-suger">Record syntax (syntax suger)</a></h3>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- this is like named parameters in `Python`</span>
+<span class="co">-- and they are made into `getters`</span>
+
+<span class="kw">data</span> <span class="dt">Person</span> <span class="fu">=</span> <span class="dt">Person</span> {<span class="ot"> firstName ::</span> <span class="dt">String</span>
+                     ,<span class="ot"> lastName ::</span> <span class="dt">String</span>
+                     ,<span class="ot"> age ::</span> <span class="dt">Int</span>
+                     ,<span class="ot"> height ::</span> <span class="dt">Float</span>
+                     } <span class="kw">deriving</span> (<span class="kw">Show</span>)</code></pre>
+<h2 id="typeclasses"><a href="#typeclasses">Typeclasses</a></h2>
+<p>Like interface in Java</p>
+<p>Specified with =&gt;</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- the type annotation can contain several class constraints</span>
+<span class="co">-- stupid example</span>
+<span class="ot">equal ::</span> (<span class="kw">Eq</span> x) <span class="ot">=&gt;</span> x <span class="ot">-&gt;</span> x <span class="ot">-&gt;</span> <span class="dt">Bool</span>
+equal x y <span class="fu">=</span> x <span class="fu">==</span> y</code></pre>
+<h3 id="common-typeclasses"><a href="#common-typeclasses">Common typeclasses</a></h3>
+<ul>
+<li>Eq (==, /=)</li>
+<li>Ord</li>
+</ul>
+<p>impl the function <code>compare</code>, which returns Ordering, a type whose value can be GT, LT, or EQ</p>
+<ul>
+<li>Show</li>
+</ul>
+<p>Example showing implementation of show:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="kw">Show</span> <span class="dt">LispVal</span> <span class="kw">where</span>
+    <span class="fu">show</span> val <span class="fu">=</span> <span class="kw">case</span> val <span class="kw">of</span>
+        <span class="dt">Atom</span> str <span class="ot">-&gt;</span> str
+        <span class="dt">List</span> xs <span class="ot">-&gt;</span> <span class="st">&quot;(&quot;</span> <span class="fu">++</span> unwordsList xs <span class="fu">++</span> <span class="st">&quot;)&quot;</span>
+        <span class="dt">DottedList</span> xs x <span class="ot">-&gt;</span><span class="st">&quot;(&quot;</span> <span class="fu">++</span> unwordsList xs <span class="fu">++</span> <span class="st">&quot; . &quot;</span> <span class="fu">++</span> <span class="fu">show</span> x <span class="fu">++</span> <span class="st">&quot;)&quot;</span>
+        <span class="dt">String</span> str <span class="ot">-&gt;</span> <span class="fu">show</span> str
+        <span class="dt">Bool</span> bool <span class="ot">-&gt;</span> <span class="kw">if</span> bool <span class="kw">then</span> <span class="st">&quot;#t&quot;</span> <span class="kw">else</span> <span class="st">&quot;#f&quot;</span>
+        <span class="dt">Number</span> num <span class="ot">-&gt;</span> <span class="fu">show</span> num</code></pre>
+<ul>
+<li>Read</li>
+</ul>
+<p>Allows dynamic construction of values, so the types should be specified if ambiguity may raise</p>
+<ul>
+<li>Enum</li>
+<li>Bounded</li>
+</ul>
+<p>functions minBound, and maxBound (polymorphic constant)</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">minBound</span><span class="ot"> ::</span> <span class="dt">Int</span>
+
+<span class="fu">---</span> <span class="dt">Syntax</span> for immplemeting this kind <span class="kw">of</span> functions 
+<span class="fu">---</span> how to patern match the <span class="fu">return</span> <span class="kw">type</span> <span class="fu">?</span></code></pre>
+<ul>
+<li>Num</li>
+</ul>
+<p>Whole number is also polymorphic constant</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">ghci<span class="fu">&gt;</span> <span class="fu">:</span>t <span class="dv">20</span>
+<span class="dv">20</span><span class="ot"> ::</span> (<span class="kw">Num</span> t) <span class="ot">-&gt;</span> t</code></pre>
+<ul>
+<li>Integral (whole numbers)</li>
+</ul>
+<p>function fromIntegral</p>
+<ul>
+<li>Floating</li>
+</ul>
+<h1 id="io"><a href="#io">IO</a></h1>
+<p>print putStrLn, putStr, putChar getLine getChar</p>
+<p>: name &lt;- getLine</p>
+<p>what is <code>return</code></p>
+<h1 id="useful-functions"><a href="#useful-functions">Useful functions</a></h1>
+<p>words, unwords</p>
+<p>pass</p>
+<h1 id="monad"><a href="#monad">Monad</a></h1>
+<h2 id="do-notation"><a href="#do-notation">Do notation</a></h2>
+<p>glut multiple XXX into one</p>
+<h1 id="zipper"><a href="#zipper">Zipper</a></h1>
+<h1 id="real-world"><a href="#real-world">Real World</a></h1>
+<h2 id="hackage-ecosystem"><a href="#hackage-ecosystem">Hackage ecosystem</a></h2>
+<p>HackageDB: official repos of Haskell softwares, but it is not closed under dependency</p>
+<p>Haddock: for documentation</p>
+<p>HPC: Haskell Program Coverage</p>
+<h2 id="package-management"><a href="#package-management">Package management</a></h2>
+<p>Cabal -&gt; Common Architecture for Building Applications and Libraries.</p>
+<p>Cabal-install is a command line tool which uses the Cabal library.</p>
+<p>Cabal-install doesn’t track the installed package files, and it leaves the job to ghc-pkg, which also doesn’t track these information. (can only unregister if needed, but files are not deleted) In other words, cabal-install (as of the date of writing) cannot uninstall/update a package. This is just disaster.</p>
+<p>We should try to use the system package manager (e.g. pacman in arch) to manage the everything. Other reasons are:</p>
+<ul>
+<li>It helps resolves dependencies even if they are not haskell libraries</li>
+<li>Often no need to compile</li>
+<li>Keep updated as you do system wide package update</li>
+</ul>
+<h3 id="ghc-config"><a href="#ghc-config">GHC Config</a></h3>
+<p>Config file for ghci is ~/.ghci</p>
+<p>You can customize the prompt of ghci, e.g.</p>
+<pre><code>:set prompt &quot;-&gt; &quot;</code></pre>
+<h3 id="run-.hs-as-script"><a href="#run-.hs-as-script">Run .hs as script</a></h3>
+<p>use <code>#!/usr/bin/env runhaskell</code></p>
+<p>Is the file compiled before running?</p>
+<h1 id="questions"><a href="#questions">Questions</a></h1>
+<p>Efficiency issues</p>
+<p>Difference of compiling and interpreting.</p>
+<h1 id="reference"><a href="#reference">Reference</a></h1>
+<ul>
+<li><a href="http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours">Write yourself a scheme in 48 hours</a></li>
+<li><a href="http://learnyouahaskell.com/chapters">Learn you a Haskell for great good</a></li>
+<li><a href="http://book.realworldhaskell.org/read/">Real world Haskell</a></li>
+<li><a href="http://ivanmiljenovic.wordpress.com/">http://ivanmiljenovic.wordpress.com/</a></li>
+</ul>
+
+<div id="footer">
+  &copy; 2012 <a href="http://@">Heng Wang</a>
+</div>
+</body>
+</html>

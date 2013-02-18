@@ -15,25 +15,33 @@ Haskell has a good type system and do type inference whenever it can. It would t
 language Elements
 ==============
 
-### Operators (Functions Indeed)
+## Operators (Functions Indeed)
 
 + \+ \- \* /
 + ``==`` /=
 
-### Functions
+## Function Basics
 
 + if then else expression (or function)
 
-+ succ, truncate, round
++ succ, pred (requires Enum typeclass)
++ truncate, round
 + sqrt
 + not
 + gcd
 + min, max
 + div (integer division)
 
-+ putStrLn
++ fst, snd
 
->(Every Binary Function can act as an infix operator)
+IO functions
+
++ putStrLn
++ getLine
+
+(only use in the IO() Monad)
+
+(Every Binary Function can act as an infix operator)
 
 Function definitions are:
 
@@ -41,13 +49,15 @@ Function definitions are:
 FunctionName ListOfParameters .. = Expression-for-function-value
 ```
 
-If function doesn't take any parameters we call it a definition in that the value is fixed
+If function doesn't take any parameters we call it a definition, or constant.
+
+We can have polymorphic constants.
 
 ```{.haskell}
 NameOfValue = "Learn you a haskell"
 ```
 
-### Lists
+## Lists
 
 Lists in Haskell are homogenous data structures.
 
@@ -66,18 +76,303 @@ Lists can be compared if its elements can be compared
 + take
 + drop
 
-### Evaluation Order of Functions
++ zip (2 lists can be of different length, longer one gets truncated)
 
-### In CHCi
++ cycle, repeat
 
-+ use ``t:`` to get type signature
-+ :l exmaple.hs to load a .hs file
+### Lists comprehension
 
+Pretty much like a mathematical expression
+
+```{.haskell}
+removeNonUppercase::[Char]->[Char]
+removeNonUppercase st = [c | c<-st , c ‘elem‘ [’A’..’Z’]]
+```
+
+Almost identical to that in python, except that:
+
++ several predicates need only be separated by comma
++ Can draw from several lists
+
+```{.haskell}
+ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]  
+[16,20,22,40,50,55,80,100,110]  
+```
+
+```{.haskell}
+ghci> let rightTriangles = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2]   
+```
+
+### Ranges
+
+```{.haskell}
+ghci> [2,4..20]  
+[2,4,6,8,10,12,14,16,18,20]
+```
+
+`[20 .. 1]` is illegal, but `[20,19..1]` is okay
+
+Something very haskell is ` take 24 [13,26..] `
+
+
+## Pattern Matching 
+
+Order matters, patterns are checked one by one. so should write them from specific ones to general ones. (should always write a catch-all pattern if not sure if our pattern matching is exhaustive.)
+
+GHC will not check (cannot check ?) if the pattern matching is exhaustive
+
+--- What if the order is complicated to figure out.
+
+The implementation would be interesting for understanding what pattern matching truly does.
+
+As Patterns, break up according to the pattern, but still keep a reference to the whole, ``xs@(x:y:ys)``
+
+
+### Occasions of Pattern Matching
+
++ Match certain value
++ Match according to value constructor
++ Match and decompose a tuple
++ In list comprehension (just like py)
++ Match and decompose a list, e.g. x:xs, or [x,y,z], or even x:y:z:zs
++ in variable binding, use pattern matching like `` let (a,b) = (1,2) ``
+
+    (Q: Why use ``Binding`` rather than ``assignment``?)
+
++ with records
+
+```{.haskell}
+tellCar :: Car -> String  
+tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y  
+```
+
++ Blindly match anything
+
+### Wnat and when can be omitted
+
+1. when the function's type is explicitly defined
+
+2. when the type can be inference **in other ways** __?__
+
+3. when the type doesn't matter, i.e. generics
+
+## Guards
+
+syntax sugar for ``else if``, can work together with pattern matching.
+
+``otherwise`` is defined to be always true.
+
+Once again the compiler cannot check for the exhaustivity, so it's a good practise the always include otherwise whenever you are not sure of __it__. where __it__ means the exhaustivity of guards.
+
+```{.haskell}
+max' (Ord a) => a -> a -> a
+max x y 
+    | x > y     = x
+    | otherwise = y
+```
+
+## Where
+
+Q: Where can ``Where`` be used -- definitely not after any expression
+
+Can even define functions in ``where`` section. (Why _even_?)    
+(How important it is to know implementations)
+
+``where`` can be nested -- well facilitate the programming paradigm of building functions.
+
+## Let .. in
+
+Very similar to where, the difference is:
+
+>  Let .. in is itself an expression, while ``where`` bindings are just syntactic constructs 
+
++ let is local, let .. in itself is an expression, and the bindings are within the let expression
++ where bindings can span across guards.
+
++ when write the bindings in where or let in one line, separate bindings using ;
+
++ let can be used in list comprehension, put the let (and only let ... without in) to where predicates are, then the bindings will be visiable to output function and later predicates. 
+(relate to the implementation)
+
+### What is ``let`` in GHCi
+
+We use it without ``in`` part, so that the bindings are visiable throughout the entire interpretation. similar to what we did in list comprehension.
+
+### Other variable bindings
+
+When can we assign some value to a variable?
+
+Outside of the main in the "global scope" we can just use ``a = sth..``, but inside main, we need to use ``where``, or ``let`` bindings. 
+
+## Case
+
+case by case function definitions are functions definition using a case expression are synatax sugars of each other.
+```{.haskell}
+case expression of pattern -> result  
+                   pattern -> result  
+                   pattern -> result  
+                   ...  
+```
+
+case expression is expression so that it can be used anywhere when if-then-else works.
+
+Function More
+==============
+
+Why higher order functions are indispensable? How does it make programming powerful?
+
+## Currying
+
+All functions in haskell only takes one parameter. (? how about implementation?)
+
+### Why useful ?
+
+We don't need to get all information at the same place for function calls, but can just pack some parameter (infomation) into the function, and pass it around.
+
+A lot of imperative programming work involves data encapulation and passing around, (callbacks, signal slots, getter and setter, etc.)
+
+Because of currying, ``a -> a -> a`` is no different from ``a -> (a -> a)``, telling us that ``->`` is right associative.
+
+(?)
+
+### Currying Infix functions
+
+To curry infix funtions (or generally binary functions), just put the parameter at the side that you desire, and surround them with parens.
+
+(This almost tells us that there are some way to specify parameters to curry on when function has more than 2 parameters.)
+
+We have flip
+
+```{.haskell}
+flip' (x -> y -> z) -> y -> x -> z
+flip' f x y = f y x
+-- this pattern matching is so cool 
+-- that it makes me feel unsure whether this is correct.
+```
+
+## Lambdas
+
+Syntax
+
+```{.haskell}
+\param1 param2 .. -> function-body
+```
+
+Type annotation of lambdas?
+
+## Function Composition 
+
+function returns only one thing, so subsequent functions should take only one parameter.
+partial apply the needed arguments, 
+or use functions like ``uncurry``
+
+### Point Free Style
+
+eliminate the arguments in function definition, and define functions as combination of some other functions
+
+try to avoid writing too long function composition,
+instead, giving intermediate result some labels will make the whole thing clearer.
+
+## Evaluation Order
+
+Function application has highest precedence
+
+note that function application is indeed a binary operation.
+
+### The $
+
+Consider the space as an operator, then $ is another operator for function application. 
+
+The difference is that space operator is left associative, and $ operator is right associative.
+
+Modules
+==============
+
+### Import
+
+```{.haskell}
+import Data.List (nub)
+import Data.List hiding (sort)
+import qualified Data.Map
+import qualified Data.Map as M
+```
+
+what if when clash happens
+
+#### In CHCi
+
+```{.haskell}
+:m + Data.List Data.Map
+```
+
+### Prelude
+
+(Talk more about Prelude here)
+
+### Data.List
+
++ nub : remove duplicates
++ intersperse
++ intercalate (list.join()
++ transpose ```  map sum $ transpose [[0,3,5,9],[10,0,0,9],[8,5,1,-1]]  ```
++ foldl' (strict version, i.e. non-lazy)
++ concat
++ concatMap = concat . Map
++ and, or (like all(), any() in python)
++ any, all (they take predicate)
++ iterate
++ splitAt
++ takeWhile, dropWhile
++ span, break
++ group (will not sort)
++ inits, tails
++ isInfixOf, isPrefixOf, isSuffixOf
++ elem, notElem
++ partition
++ find (return Maybe a)
++ elemIndex, elemIndices
++ findIndex, findIndices
++ zip3, zip4, zipWith3, zipWith4
++ lines, unlines
++ words, unwords
++ delete
++ ``\\``
++ union (duplications in second but not first list are removed)
++ intersect 
++ insert (find a right position assuming ordered ascendingly)
+
++ the generic version of some functions using Integral-or-Num class type as parameter.
++ xxxBy -- takes an cmp function
+
+### Data.Control
+
+### Data.Map
+
+### Data.Set
+
+### Export 
+
+```{.haskell}
+module Shapes   
+( Point(..)  
+, Shape(..)  
+, surface  
+, nudge  
+, baseCircle  
+, baseRect  
+) where  
+```
 
 Misc
 ==============
 
-### Difference between codes in GHC and GHCi
+## In CHCi
+
++ use ``t:`` to get type signature
++ ``:i`` to get information (doc) about something
++ ``:l exmaple.hs`` to load a .hs file
+
+## Difference between codes in GHC and GHCi
 
 Name them _differences_ may not ba a good idea.
 
@@ -85,17 +380,26 @@ In GHCi we use `` let something .. = something-else.. ``
 
 While in GHC, we just write `` a = b `` without `` let ``
 
+## Programming Patterns and Conventions
 
-### Programming Patterns and Conventions
+use of `_`, `x`, `xs`.
+
+use of `a`, `b`, `c` for type variables
+
+Uppercase the first letter of type and value constructors
 
 Define basic functions that are absolutely correct and then define more complex functions based on them. (Try to make functions simple, which will not sacrifice the efficiency)
 
 Apostrophe `` ' `` can be used in function names, to define a slightly different version of some function.
 
+## Misc in Misc
+
+``length`` returns ``Int`` rather than ``Num a`` for historical reasons, may need to use ``fromIntegral`` on that. 
+
 Types
 ==============
 
-### type signature
+## Type Basics
 
 Use `data` keyword to define a type
 
@@ -103,12 +407,12 @@ a type
 
 :    just a set of value constructors
 
-> what is the difference between value constructors and functions?   
-> if no difference, then a type is just a collection of functions
+> essential difference between value constructors and functions?   
+> if no, then a type is just a collection of constructors..
 
 value constructors: 
 
-:    list of parameters which are again types 
+:    list of parameters which are again types
 
 :    functions which ultimately return a value of a data type (the type we are defining) -- (functions thus can be partially applied)
 
@@ -120,7 +424,15 @@ A data instance (or an object)
 
 type constructors:
 
-:   take types as parameters to produce new types
+:   take types as parameters to produce new types, e.g ``Maybe Int``
+
+type signature:
+
+:   
+
+type annotation:
+
+:   To explicitly say the type we want the expression to be.. Type annotations are a way of explicit e.g `` Read "[1,2,3]" :: [Int] ``. Can be used in any inline expression (Oh expression is an expression is an inline expression)
 
 
 ```{.haskell}
@@ -135,34 +447,181 @@ surface (Circle _ _ t) = pi * r ^ 2 -- am I doing pattern matching here?
 > a notable observation is how the type can be defined to contain different value constructors. 
 > we can even only export a subset of the value constructors *that is, we can hide some constructors, yet still have full power of using it*
 
-##### Record syntax (syntax suger)
+### Record syntax (syntax suger)
+
 ```{.haskell}
 -- this is like named parameters in `Python`
 -- and they are made into `getters`
+
 data Person = Person { firstName :: String
                      , lastName :: String
                      , age :: Int
-                     , height :: Float
                      } deriving (Show)
+
+ohw = Person {firstName="Heng", lastName="Wang", age=18}
 ```
 
-### Pattern Matching 
+## Type Parameter
 
-##### classifications of previous examples
+``Maybe Int`` the simple, yet enough example
 
-##### what is omitted? what can be omitted? different forms.
+It is discouraged to write typeclass constrains for type parameters, becasue we need to write it when we define functions anyway.
 
-1. when the function's type is explicitly defined
+## Type Synonyms
 
-2. when the type can be inference **in other ways** __?__
+Straightforward, give an alias for exsiting types, e.g. ``type Vector3i = Vector Int Int Int``
 
-3. when the type doesn't matter, i.e. generics
+## Recursive Data Structure
+
+this deserves a whole new notebook to write about.
+
+## Typeclasses
+
+Like interface in Java
+
+Specified with =>
+
+```{.haskell}
+-- the type annotation can contain several class constraints
+-- stupid example
+equal :: (Eq x) => x -> x -> Bool
+equal x y = x == y
+``` 
+
+Sometimes we say a type is an ``instance`` of a typeclass
+
+### Common typeclasses
+
++ Eq (==, /=)
++ Ord 
+
+impl the function ``compare``, which returns Ordering, a type whose value can be GT, LT, or EQ
+
++ Show
+
+Example showing implementation of show:
+
+```{.haskell}
+instance Show LispVal where
+    show val = case val of
+        Atom str -> str
+        List xs -> "(" ++ unwordsList xs ++ ")"
+        DottedList xs x ->"(" ++ unwordsList xs ++ " . " ++ show x ++ ")"
+        String str -> show str
+        Bool bool -> if bool then "#t" else "#f"
+        Number num -> show num
+```
+
++ Read
+
+Allows dynamic construction of values, so the types should be specified if ambiguity may raise
+
++ Enum
++ Bounded
+
+functions minBound, and maxBound (polymorphic constant)
+
+```{.haskell}
+minBound :: Int
+
+--- Syntax for immplemeting this kind of functions 
+--- how to patern match the return type ?
+```
+
++ Num
+
+Whole number is also polymorphic constant
+
+```{.haskell}
+ghci> :t 20
+20 :: (Num t) -> t
+```
+
++ Integral (whole numbers)
+
+function fromIntegral
+
++ Floating
+
+### Typeclasses Implementation
+
+How ``Eq`` is defined in Prelude
+
+```{.haskell}
+class Eq a where  
+    (==) :: a -> a -> Bool  
+    (/=) :: a -> a -> Bool  
+
+-- this recursive definition is helpful
+-- So that we only need to define anyone of them
+-- called minimal complete definition for the typeclasses
+
+    x == y = not (x /= y)  
+    x /= y = not (x == y)  
+
+-- Do we have the thing called 'Partial Definition?'
+
+data Foo = Shabi
+
+instance Eq Foo where
+    (==) Shabi Shabi = True
+```
+
+We __overwrote__ the previous definition for (==) in class Eq's definition
+(so it's not something called partial definition)
 
 
-In Real World
+subclass of other type classes
+
+```{.haskell}
+class (Eq a) => Num a where  
+   ...    
+```
+
+For parametried types, just pattern match in the instance declaration, e.g. ``instance (Eq m) => Eq (Maybe m) where ``
+
+IO
 ==============
 
-### Hackage ecosystem
+print 
+putStrLn, putStr, putChar
+getLine
+getChar
+
+
+# Useful functions
+
+pass
+
+Functor
+==============
+
+functor can mean different things in different contexts.
+
+in Haskell, Functor is a typeclass
+
+Monad
+==============
+
+return 
+
+:  turn a normal type into a monad type. (put into box)
+
+<-
+
+:  turn a monad type into a normal type. (get out of the box)
+
+## Do notation
+
+glut multiple XXX into one
+
+Zipper
+==============
+
+Real World
+==============
+
+## Hackage ecosystem
 
 HackageDB: official repos of Haskell softwares, but it is not closed under dependency
 
@@ -170,7 +629,7 @@ Haddock: for documentation
 
 HPC: Haskell Program Coverage
 
-### Package management
+## Package management
 
 Cabal -> Common Architecture for Building Applications and Libraries.
 
@@ -188,10 +647,9 @@ the everything. Other reasons are:
 * Often no need to compile
 * Keep updated as you do system wide package update
 
-GHC
-====================
+### GHC Config
 
-Config file for ghci -> ~/.ghci
+Config file for ghci is ~/.ghci
 
 You can customize the prompt of ghci, e.g.
 
@@ -199,13 +657,22 @@ You can customize the prompt of ghci, e.g.
 :set prompt "-> "
 ```
 
+### Run .hs as script
+
+use ``` #!/usr/bin/env runhaskell ```
+
+Is the file compiled before running?
+
 Questions
 ===================
 
 Efficiency issues
 
+Difference of compiling and interpreting.
+
 Reference
 ====================
+
 + [Write yourself a scheme in 48 hours](http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours)
 + [Learn you a Haskell for great good](http://learnyouahaskell.com/chapters)
 + [Real world Haskell](http://book.realworldhaskell.org/read/)
