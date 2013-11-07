@@ -1,29 +1,37 @@
 -- scheme 48
---
-module Sexpr (parseExpr, readExpr', LispVal(..)) where
+-- Parser and def for LispVar
+
+module Sexpr (parseExpr, parseLine, LispVal(..)) where
 
 import Text.Parsec
 import Text.Parsec.String
 import qualified Text.Parsec.Token as T
 import Text.Parsec.Language
+
 import Data.List
 import Control.Monad
 
-{-Needed?-}
-import Text.Parsec.Error
+-- import LispError
+-- Q: for current moduling, 
+-- any elegant solution without the working around
 
-main :: IO ()
-main = do 
+test :: IO ()
+test = do 
     str <- getLine
-    putStrLn $ readExpr str
+    putStrLn $ readExprShow str
 
-readExpr' :: String -> LispVal
-readExpr' input = case parse (spaces >> parseExpr) "scheme" input of
+parseLine = parse (spaces >> parseExpr) "scheme"
+
+-- readExprEither :: String -> Either (??) LispVal
+readExprEither = parseLine
+
+readExprError :: String -> LispVal
+readExprError input = case parseLine input of
         Left err -> error $ "Parse Error " ++ show err
         Right val -> val
 
-readExpr :: String -> String
-readExpr input = case parse (spaces >> parseExpr) "scheme" input of
+readExprShow :: String -> String
+readExprShow input = case parseLine input of
         Left err -> "Parse Error : " ++ show err
         Right val -> show val
 
@@ -32,9 +40,13 @@ readExpr input = case parse (spaces >> parseExpr) "scheme" input of
 data LispVal = Atom String
              | List [LispVal]
              | DottedList [LispVal] LispVal
+             -- dotted list or improper list
+             -- is a list that doesn't end with []
+             -- but something else
              | Number Integer
              | String String
              | Bool Bool
+      deriving (Eq)
 
 instance Show LispVal where
     show val = case val of

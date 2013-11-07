@@ -4,4 +4,9 @@ cabal-dev
 *.hi
 *.chi
 *.chs.h
+Main
+main
+test
+trymutate
+
 .virthualenv
