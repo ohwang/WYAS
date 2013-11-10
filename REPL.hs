@@ -8,7 +8,7 @@ import Data.Maybe (fromMaybe)
 import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT), runMaybeT)
 
-lispPrompt = ">> "
+lispPrompt = "-> "
 
 flushStr :: String -> IO ()
 -- no newline

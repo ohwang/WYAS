@@ -7,7 +7,8 @@ module Eval
 
 import Sexpr
 import LispError
-import Control.Monad (liftM)
+import LibCommon
+import Control.Monad (liftM, (>=>))
 import Control.Monad.Error (throwError)
 import Control.Monad.Trans.Error hiding (throwError)
 
@@ -29,14 +30,6 @@ readExprM x = case parseLine x of
   (Left err) -> throwError $ Parser err 
   (Right val) -> return val
 
--------------------------
--- eval mechanism 
--- primitive functions are defined in CoreLib
---
--- quote and if are treatly specially
--- because only parts of the arguments are evaled
--------------------------
-
 eval :: LispVal -> ThrowsError LispVal
 
 -- primitives
@@ -56,10 +49,24 @@ eval (List (Atom func : args)) = mapM eval args >>= apply func
 -- errors not caused by parsing
 eval badForm = throwError $ BadSpecialForm "Bad Form" badForm 
 
---------------------------
-
 apply :: String -> [LispVal] -> ThrowsError LispVal
 -- apply func args = maybe (Bool False) ($ args) $ lookup func primitives
 apply func args = maybe (throwError $ NotFunction "unrecognized primitive func" func ) 
                         ($ args)
-                        (lookup func L.primitives)
+                        (lookup func $ (++) L.primitives evalFuncs)
+
+--------------------------
+
+evalFun [x]        = eval x
+evalFun badNumArgs = throwError $ NumArgs 1 badNumArgs
+
+evalStrFun [String s] = readExprM s >>= eval
+evalStrFun [x] = throwError $ TypeMismatch ("argType for eval-string") x
+evalStrFun badNumArgs = throwError $ NumArgs 1 badNumArgs
+
+evalFuncs = [("eval", evalFun)
+            ,("eval-string", evalStrFun)
+            ]
+
+--------------------------
+

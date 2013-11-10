@@ -8,5 +8,6 @@ Main
 main
 test
 trymutate
+*.swp
 
 .virthualenv
