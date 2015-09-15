@@ -2,6 +2,7 @@ module REPL where
 
 import Eval
 import System.IO
+import System.IO.Error (catchIOError, isEOFError)
 import System.Console.Readline
 
 import Data.Maybe (fromMaybe)
@@ -38,10 +39,6 @@ runRepl' :: IO ()
 runRepl' = until_' quitPred (readline lispPrompt) evalAndPrint
   where quitPred = (== "quit")
 
-
--- an attempt to use monad style 
--- without knowing monad transformer
-
 replReadline :: MaybeT IO String
 replReadline = do
   line <- MaybeT $ readline lispPrompt
@@ -52,9 +49,13 @@ replReadline = do
 runRepl = runMaybeT replReadline
 
 -- old REPL without readline
-mainLoop :: IO ()
-mainLoop = do
-  line <- getLine
-  evalAndPrint line
-  mainLoop
+-- functions cannot begin with an uppercase letter
+simpleEvalLoop :: IO ()
+simpleEvalLoop = do
+  line <- getLine `catchIOError` eofErrorHandler
+  if line /= "\0"
+    then evalAndPrint line >> simpleEvalLoop 
+    else return ()
+  where 
+    eofErrorHandler e = if isEOFError e then return "\0" else ioError e
 

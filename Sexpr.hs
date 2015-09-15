@@ -3,6 +3,13 @@
 
 module Sexpr (parseExpr, parseLine, LispVal(..)) where
 
+{-
+Problem with current impl of parsing:
+  1. can only read line by line
+  2. the rest of line is ignored and discarded once a valid sexpr is found
+  3. handle whiltspaces and line break outside of sexpr
+-}
+
 import Text.Parsec
 import Text.Parsec.String
 import qualified Text.Parsec.Token as T
@@ -10,15 +17,6 @@ import Text.Parsec.Language
 
 import Data.List
 import Control.Monad
-
--- import LispError
--- Q: for current moduling, 
--- any elegant solution without the working around
-
-test :: IO ()
-test = do 
-    str <- getLine
-    putStrLn $ readExprShow str
 
 parseLine = parse (spaces >> parseExpr) "scheme"
 

@@ -14,6 +14,7 @@ import Control.Monad.Trans.Error hiding (throwError)
 
 import qualified CoreLib as L
 
+-- the input must be valid sexpr
 evalString :: String -> String
 evalString s = extractValue $ trapError evaled
   -- evaled :: ThrowsError String

@@ -1,5 +1,8 @@
 module Main where
 
-import REPL (runRepl)
+import REPL (runRepl, simpleEvalLoop)
+import System.IO
 
-main = runRepl
+main = do 
+  isTerm <- hIsTerminalDevice stdin
+  if isTerm then runRepl >> return () else simpleEvalLoop
